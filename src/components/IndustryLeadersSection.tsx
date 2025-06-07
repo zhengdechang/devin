@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const IndustryLeadersSection = () => {
   return (
@@ -13,10 +13,10 @@ const IndustryLeadersSection = () => {
         </p> */}
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105"
-          onClick={() => {
-            // Placeholder action, replace with actual link or modal opening
-            alert('Navigating to customer stories... (placeholder)');
-          }}
+          // onClick={() => {
+          //   // Placeholder action, replace with actual link or modal opening
+          //   alert('Navigating to customer stories... (placeholder)');
+          // }}
         >
           Hear from our customers
         </button>
