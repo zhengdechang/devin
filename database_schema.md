@@ -4,24 +4,24 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ## Product Service Database
 
-### 1. Table: `products`
+### 1. Table: `products` -- 商品表
 
 | Column           | Type                | Constraints                                                              | Description / Notes                                                                                                |
 |------------------|---------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `product_id`     | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the product.                                                                                 |
-| `erp_product_id` | VARCHAR(255)        | UNIQUE, NULLABLE                                                         | ID from the ERP system, used for synchronization. Nullable if product created directly.                            |
-| `sku_ref_id`     | VARCHAR(255)        | NULLABLE                                                                 | Reference ID for a standard product unit (e.g., from a catalog), if applicable.                                    |
-| `merchant_id`    | BIGINT UNSIGNED     | NOT NULL, INDEX                                                          | Foreign key referencing `merchants.merchant_id`.                                                                   |
-| `title`          | VARCHAR(512)        | NOT NULL                                                                 | Product title.                                                                                                     |
-| `description`    | TEXT                | NULLABLE                                                                 | Detailed product description.                                                                                      |
-| `images`         | JSON                | NULLABLE                                                                 | JSON array of image URLs/identifiers. Ex: `[{"url": "cdn.example.com/img1.jpg", "order": 1, "alt_text": "Front view"}]` |
-| `price_currency` | VARCHAR(3)          | NOT NULL, DEFAULT 'CNY'                                                  | Currency code (e.g., CNY, USD).                                                                                    |
-| `price_amount`   | DECIMAL(12, 2)      | NOT NULL                                                                 | Product price.                                                                                                     |
-| `status`         | ENUM(...)           | NOT NULL, DEFAULT 'draft', INDEX                                         | ('draft', 'pending_approval', 'listed', 'locked', 'sold', 'delisted', 'archived').                                 |
-| `ai_enriched`    | BOOLEAN             | NOT NULL, DEFAULT FALSE                                                  | Flag indicating if AI has processed the product.                                                                   |
-| `created_at`     | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation.                                                                                             |
-| `updated_at`     | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update.                                                                                          |
-| `version`        | INT UNSIGNED        | NOT NULL, DEFAULT 1                                                      | Optimistic locking version.                                                                                        |
+| `product_id`     | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the product. -- 商品ID，主键，自增。                                                               |
+| `erp_product_id` | VARCHAR(255)        | UNIQUE, NULLABLE                                                         | ID from the ERP system, used for synchronization. Nullable if the product is created directly in the system. -- ERP系统中的商品ID，用于同步，如果商品直接在系统中创建则可为空。 |
+| `sku_ref_id`     | VARCHAR(255)        | NULLABLE                                                                 | Reference ID for a standard product unit (e.g., from a catalog), if applicable. -- 标品ID，关联标准产品单元（例如来自目录）。      |
+| `merchant_id`    | BIGINT UNSIGNED     | NOT NULL, INDEX                                                          | Foreign key referencing `merchants.merchant_id`. -- 商家ID，外键，关联merchants表。                                        |
+| `title`          | VARCHAR(512)        | NOT NULL                                                                 | Product title. -- 商品标题。                                                                                       |
+| `description`    | TEXT                | NULLABLE                                                                 | Detailed product description. -- 商品详细描述。                                                                    |
+| `images`         | JSON                | NULLABLE                                                                 | JSON array of image URLs or identifiers. Storing as JSON allows for flexibility in image metadata. Example: `[{"url": "cdn.example.com/img1.jpg", "order": 1, "alt_text": "Front view"}, ...]`. -- 商品图片，JSON数组格式，存储图片URL或标识符。 |
+| `price_currency` | VARCHAR(3)          | NOT NULL, DEFAULT 'CNY'                                                  | Currency code (e.g., CNY, USD). -- 价格货币代码（如CNY, USD）。                                                       |
+| `price_amount`   | DECIMAL(12, 2)      | NOT NULL                                                                 | Product price. -- 商品价格金额。                                                                                     |
+| `status`         | ENUM(...)           | NOT NULL, DEFAULT 'draft', INDEX                                         | ('draft', 'pending_approval', 'listed', 'locked', 'sold', 'delisted', 'archived'). -- 商品状态（draft: 草稿, pending_approval: 待审核, listed: 已上架, locked: 已锁定, sold: 已售出, delisted: 已下架, archived: 已归档）。 |
+| `ai_enriched`    | BOOLEAN             | NOT NULL, DEFAULT FALSE                                                  | Flag indicating if AI has processed the product. -- AI是否已处理标记，布尔值。                                               |
+| `created_at`     | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation. -- 创建时间。                                                                                 |
+| `updated_at`     | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update. -- 更新时间。                                                                              |
+| `version`        | INT UNSIGNED        | NOT NULL, DEFAULT 1                                                      | Optimistic locking version. -- 乐观锁版本号。                                                                        |
 
 **Indexes:**
 *   PRIMARY KEY (`product_id`)
@@ -33,16 +33,16 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 2. Table: `product_ai_tags`
+### 2. Table: `product_ai_tags` -- 商品AI标签表
 
 | Column               | Type             | Constraints                               | Description / Notes                                                                                                   |
 |----------------------|------------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| `product_ai_tag_id`  | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier.                                                                                                    |
-| `product_id`         | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `products.product_id`.                                                                        |
-| `tags`               | JSON             | NOT NULL                                  | JSON object/array of AI tags. Ex: `{"brand": "Chanel", "category": "Handbag"}` or `["vintage", "leather"]`.         |
-| `ai_service_version` | VARCHAR(50)      | NULLABLE                                  | Version of the AI service/model that generated the tags.                                                              |
-| `confidence_score`   | DECIMAL(5,4)     | NULLABLE                                  | Overall confidence score for the generated tags.                                                                      |
-| `created_at`         | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of creation.                                                                                                |
+| `product_ai_tag_id`  | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier. -- AI标签记录ID，主键，自增。                                                                          |
+| `product_id`         | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `products.product_id`. -- 商品ID，外键，关联products表。                                          |
+| `tags`               | JSON             | NOT NULL                                  | JSON object or array of tags generated by AI. -- AI生成的标签，JSON格式。                                                     |
+| `ai_service_version` | VARCHAR(50)      | NULLABLE                                  | Version of the AI service/model that generated the tags. -- AI服务/模型版本号。                                               |
+| `confidence_score`   | DECIMAL(5,4)     | NULLABLE                                  | Overall confidence score for the generated tags, if available from AI. -- AI生成标签的置信度评分。                                |
+| `created_at`         | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of creation. -- 创建时间。                                                                                    |
 
 **Indexes:**
 *   PRIMARY KEY (`product_ai_tag_id`)
@@ -52,16 +52,16 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 3. Table: `product_ai_descriptions`
+### 3. Table: `product_ai_descriptions` -- 商品AI描述表
 
 | Column                      | Type             | Constraints                               | Description / Notes                                                                 |
 |-----------------------------|------------------|-------------------------------------------|-------------------------------------------------------------------------------------|
-| `product_ai_description_id` | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier.                                                                  |
-| `product_id`                | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `products.product_id`.                                      |
-| `language_code`             | VARCHAR(10)      | NOT NULL                                  | Language code (e.g., "en-US", "ja-JP", "zh-CN").                                    |
-| `description`               | TEXT             | NOT NULL                                  | AI-generated description in the specified language.                                 |
-| `ai_service_version`        | VARCHAR(50)      | NULLABLE                                  | Version of the AI service/model that generated the description.                     |
-| `created_at`                | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of creation.                                                              |
+| `product_ai_description_id` | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier. -- AI描述记录ID，主键，自增。                                                      |
+| `product_id`                | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `products.product_id`. -- 商品ID，外键，关联products表。                          |
+| `language_code`             | VARCHAR(10)      | NOT NULL                                  | Language code (e.g., "en-US", "ja-JP", "zh-CN"). -- 语言代码（如 "en-US", "ja-JP", "zh-CN"）。           |
+| `description`               | TEXT             | NOT NULL                                  | AI-generated description in the specified language. -- AI生成的多语言描述。                               |
+| `ai_service_version`        | VARCHAR(50)      | NULLABLE                                  | Version of the AI service/model that generated the description. -- AI服务/模型版本号。                    |
+| `created_at`                | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of creation. -- 创建时间。                                                                  |
 
 **Constraints:**
 *   UNIQUE KEY `idx_product_lang_ai_desc` (`product_id`, `language_code`)
@@ -74,17 +74,17 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 4. Table: `merchants`
+### 4. Table: `merchants` -- 商家表
 
 | Column         | Type                | Constraints                                                              | Description / Notes                                                                              |
 |----------------|---------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| `merchant_id`  | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the merchant.                                                              |
-| `name`         | VARCHAR(255)        | NOT NULL                                                                 | Merchant's name.                                                                                 |
-| `source_type`  | VARCHAR(50)         | NULLABLE                                                                 | Origin/type of merchant (e.g., "erp_sync", "manual_entry", "consignment").                       |
-| `contact_info` | JSON                | NULLABLE                                                                 | JSON object for contact details (e.g., `{"phone": "123...", "email": "contact@example.com"}`). |
-| `status`       | ENUM(...)           | NOT NULL, DEFAULT 'active', INDEX                                        | ('active', 'inactive', 'pending_review').                                                        |
-| `created_at`   | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation.                                                                           |
-| `updated_at`   | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update.                                                                        |
+| `merchant_id`  | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the merchant. -- 商家ID，主键，自增。                                              |
+| `name`         | VARCHAR(255)        | NOT NULL                                                                 | Merchant's name. -- 商家名称。                                                                     |
+| `source_type`  | VARCHAR(50)         | NULLABLE                                                                 | Origin or type of the merchant (e.g., "erp_sync", "manual_entry", "consignment"). -- 商家来源类型（如 "erp_sync", "manual_entry"）。 |
+| `contact_info` | JSON                | NULLABLE                                                                 | JSON object for contact details (e.g., `{"phone": "123...", "email": "contact@example.com"}`). -- 联系信息，JSON格式。 |
+| `status`       | ENUM(...)           | NOT NULL, DEFAULT 'active', INDEX                                        | ('active', 'inactive', 'pending_review'). -- 商家状态（active: 活跃, inactive: 非活跃, pending_review: 待审核）。 |
+| `created_at`   | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation. -- 创建时间。                                                               |
+| `updated_at`   | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update. -- 更新时间。                                                            |
 
 **Indexes:**
 *   PRIMARY KEY (`merchant_id`)
@@ -94,16 +94,16 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 5. Table: `tags`
+### 5. Table: `tags` -- 标签定义表
 
 | Column      | Type                | Constraints                                                              | Description / Notes                                                                           |
 |-------------|---------------------|--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `tag_id`    | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the tag.                                                                |
-| `name`      | VARCHAR(100)        | NOT NULL, UNIQUE                                                         | Tag name (e.g., "Vintage", "Limited Edition").                                                |
-| `type`      | ENUM(...)           | NOT NULL, INDEX                                                          | ('manual', 'rule', 'ai', 'category'). Source/type of the tag.                                 |
-| `description` | VARCHAR(255)        | NULLABLE                                                                 | Optional description for the tag's meaning or usage.                                          |
-| `created_at`| TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation.                                                                        |
-| `updated_at`| TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update.                                                                     |
+| `tag_id`    | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the tag. -- 标签ID，主键，自增。                                              |
+| `name`      | VARCHAR(100)        | NOT NULL, UNIQUE                                                         | Tag name (e.g., "Vintage", "Limited Edition", "Good Condition"). -- 标签名称，唯一。                  |
+| `type`      | ENUM(...)           | NOT NULL, INDEX                                                          | ('manual', 'rule', 'ai', 'category'). Source/type of the tag. -- 标签类型（manual: 手动, rule: 规则, ai: AI生成, category: 分类）。 |
+| `description` | VARCHAR(255)        | NULLABLE                                                                 | Optional description for the tag's meaning or usage. -- 标签描述信息。                                |
+| `created_at`| TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation. -- 创建时间。                                                            |
+| `updated_at`| TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update. -- 更新时间。                                                         |
 
 **Indexes:**
 *   PRIMARY KEY (`tag_id`)
@@ -112,17 +112,15 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 6. Table: `product_tags`
-
-(Many-to-Many relationship between `products` and `tags` - for manual/curated tags)
+### 6. Table: `product_tags` -- 商品人工标签关联表
 
 | Column             | Type             | Constraints                               | Description / Notes                                                                          |
 |--------------------|------------------|-------------------------------------------|----------------------------------------------------------------------------------------------|
-| `product_tag_id`   | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier for the association.                                                       |
-| `product_id`       | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `products.product_id`.                                               |
-| `tag_id`           | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `tags.tag_id`.                                                       |
-| `added_by_user_id` | BIGINT UNSIGNED  | NULLABLE                                  | User ID who added this tag. (References an `users` table - not defined here).                |
-| `created_at`       | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of association.                                                                    |
+| `product_tag_id`   | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier for the association. -- 商品标签关联ID，主键，自增。                                   |
+| `product_id`       | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `products.product_id`. -- 商品ID，外键，关联products表。                       |
+| `tag_id`           | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `tags.tag_id`. -- 标签ID，外键，关联tags表。                                 |
+| `added_by_user_id` | BIGINT UNSIGNED  | NULLABLE                                  | User ID who added this tag. -- 添加该标签的用户ID。                                                  |
+| `created_at`       | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of association. -- 创建时间。                                                        |
 
 **Constraints:**
 *   UNIQUE KEY `idx_product_tag_unique` (`product_id`, `tag_id`)
@@ -134,17 +132,15 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 7. Table: `merchant_tags`
-
-(Many-to-Many relationship between `merchants` and `tags`)
+### 7. Table: `merchant_tags` -- 商家标签关联表
 
 | Column             | Type             | Constraints                               | Description / Notes                                                                          |
 |--------------------|------------------|-------------------------------------------|----------------------------------------------------------------------------------------------|
-| `merchant_tag_id`  | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier for the association.                                                       |
-| `merchant_id`      | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `merchants.merchant_id`.                                             |
-| `tag_id`           | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `tags.tag_id`.                                                       |
-| `added_by_user_id` | BIGINT UNSIGNED  | NULLABLE                                  | User ID who added this tag to the merchant. (References an `users` table - not defined here). |
-| `created_at`       | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of association.                                                                    |
+| `merchant_tag_id`  | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier for the association. -- 商家标签关联ID，主键，自增。                                   |
+| `merchant_id`      | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `merchants.merchant_id`. -- 商家ID，外键，关联merchants表。                    |
+| `tag_id`           | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `tags.tag_id`. -- 标签ID，外键，关联tags表。                                 |
+| `added_by_user_id` | BIGINT UNSIGNED  | NULLABLE                                  | User ID who added this tag to the merchant. -- 添加该标签到商家的用户ID。                                |
+| `created_at`       | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of association. -- 创建时间。                                                        |
 
 **Constraints:**
 *   UNIQUE KEY `idx_merchant_tag_unique` (`merchant_id`, `tag_id`)
@@ -156,18 +152,18 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 8. Table: `merchant_tag_logs`
+### 8. Table: `merchant_tag_logs` -- 商家标签操作日志表
 
 | Column         | Type             | Constraints                               | Description / Notes                                                                                                |
 |----------------|------------------|-------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `log_id`       | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique log entry identifier.                                                                                       |
-| `merchant_id`  | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `merchants.merchant_id`.                                                                   |
-| `tag_id`       | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `tags.tag_id`.                                                                             |
-| `action`       | ENUM(...)        | NOT NULL                                  | ('added', 'removed'). The action performed on the tag.                                                             |
-| `operator_id`  | BIGINT UNSIGNED  | NOT NULL                                  | ID of the user or system performing the action.                                                                    |
-| `source`       | VARCHAR(255)     | NULLABLE                                  | Details about source of action (e.g., "manual_ui", "ai_suggestion_approval").                                     |
-| `change_details` | JSON             | NULLABLE                                  | Optional JSON for additional details about the change.                                                             |
-| `created_at`   | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of the log entry.                                                                                        |
+| `log_id`       | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique log entry identifier. -- 日志ID，主键，自增。                                                                   |
+| `merchant_id`  | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `merchants.merchant_id`. -- 商家ID，外键，关联merchants表。                                     |
+| `tag_id`       | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `tags.tag_id`. -- 标签ID，外键，关联tags表。                                                     |
+| `action`       | ENUM(...)        | NOT NULL                                  | ('added', 'removed'). The action performed on the tag. -- 操作类型（added: 添加, removed: 移除）。                       |
+| `operator_id`  | BIGINT UNSIGNED  | NOT NULL                                  | ID of the user or system performing the action. -- 操作人ID（用户ID或系统ID）。                                           |
+| `source`       | VARCHAR(255)     | NULLABLE                                  | More details about the source of the action. -- 操作来源详情。                                                          |
+| `change_details` | JSON             | NULLABLE                                  | Optional JSON field to store additional details about the change. -- 变更详情，JSON格式。                                  |
+| `created_at`   | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of the log entry. -- 创建时间。                                                                            |
 
 **Indexes:**
 *   PRIMARY KEY (`log_id`)
@@ -178,25 +174,23 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 9. Table: `product_listings`
-
-(Tracks product publication on different platforms)
+### 9. Table: `product_listings` -- 商品上架信息表
 
 | Column                     | Type             | Constraints                                                              | Description / Notes                                                                                           |
 |----------------------------|------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| `listing_id`               | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the listing.                                                                            |
-| `product_id`               | BIGINT UNSIGNED  | NOT NULL                                                                 | Foreign key referencing `products.product_id`.                                                                |
-| `platform_id`              | VARCHAR(50)      | NOT NULL                                                                 | Identifier for the external platform (e.g., "xianyu", "dewu", "95fen").                                       |
-| `platform_product_id`      | VARCHAR(255)     | NULLABLE                                                                 | The ID of the product on the external platform.                                                               |
-| `status`                   | ENUM(...)        | NOT NULL, INDEX                                                          | ('pending_publish', 'published', 'failed_publish', 'pending_unpublish', 'unpublished', 'sold_on_platform'). |
-| `last_publish_attempt_at`  | TIMESTAMP        | NULLABLE                                                                 | Timestamp of the last attempt to publish.                                                                     |
-| `published_at`             | TIMESTAMP        | NULLABLE                                                                 | Timestamp when successfully published.                                                                        |
-| `unpublished_at`           | TIMESTAMP        | NULLABLE                                                                 | Timestamp when unpublished.                                                                                   |
-| `last_sync_at`             | TIMESTAMP        | NULLABLE                                                                 | Timestamp of the last status sync with the platform.                                                          |
-| `publish_details`          | JSON             | NULLABLE                                                                 | Platform-specific details (e.g., category, listing options).                                                  |
-| `error_message`            | TEXT             | NULLABLE                                                                 | Stores error messages if publishing/unpublishing failed.                                                      |
-| `created_at`               | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation.                                                                                        |
-| `updated_at`               | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update.                                                                                     |
+| `listing_id`               | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the listing. -- 上架记录ID，主键，自增。                                                        |
+| `product_id`               | BIGINT UNSIGNED  | NOT NULL                                                                 | Foreign key referencing `products.product_id`. -- 商品ID，外键，关联products表。                                      |
+| `platform_id`              | VARCHAR(50)      | NOT NULL                                                                 | Identifier for the external platform (e.g., "xianyu", "dewu", "95fen"). -- 外部平台标识（如 "xianyu", "dewu"）。        |
+| `platform_product_id`      | VARCHAR(255)     | NULLABLE                                                                 | The ID of the product on the external platform, once listed. -- 商品在外部平台的ID。                                  |
+| `status`                   | ENUM(...)        | NOT NULL, INDEX                                                          | ('pending_publish', 'published', 'failed_publish', 'pending_unpublish', 'unpublished', 'sold_on_platform'). -- 上架状态（pending_publish: 待发布, published: 已发布, failed_publish: 发布失败, pending_unpublish: 待下架, unpublished: 已下架, sold_on_platform: 已在平台售出）。 |
+| `last_publish_attempt_at`  | TIMESTAMP        | NULLABLE                                                                 | Timestamp of the last attempt to publish. -- 最后尝试发布时间。                                                     |
+| `published_at`             | TIMESTAMP        | NULLABLE                                                                 | Timestamp when successfully published. -- 成功发布时间。                                                          |
+| `unpublished_at`           | TIMESTAMP        | NULLABLE                                                                 | Timestamp when unpublished. -- 下架时间。                                                                       |
+| `last_sync_at`             | TIMESTAMP        | NULLABLE                                                                 | Timestamp of the last status sync with the platform. -- 最后与平台同步状态时间。                                      |
+| `publish_details`          | JSON             | NULLABLE                                                                 | Any specific details related to publishing on this platform. -- 发布详情，JSON格式，存储平台特定信息。                           |
+| `error_message`            | TEXT             | NULLABLE                                                                 | Stores error messages if publishing/unpublishing failed. -- 错误信息（如果发布/下架失败）。                               |
+| `created_at`               | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of creation. -- 创建时间。                                                                            |
+| `updated_at`               | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update. -- 更新时间。                                                                         |
 
 **Constraints:**
 *   UNIQUE KEY `idx_product_platform_unique` (`product_id`, `platform_id`)
@@ -210,21 +204,19 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 10. Table: `audit_logs`
-
-(General audit trail for significant actions)
+### 10. Table: `audit_logs` -- 审计日志表
 
 | Column        | Type             | Constraints                               | Description / Notes                                                                                                                               |
 |---------------|------------------|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| `log_id`      | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique log entry identifier.                                                                                                                      |
-| `user_id`     | BIGINT UNSIGNED  | NOT NULL, INDEX                           | ID of user/system performing action (e.g., user ID, reserved AI ID like 9999).                                                                    |
-| `action_type` | VARCHAR(100)     | NOT NULL, INDEX                           | Type of action (e.g., "CREATE_PRODUCT", "UPDATE_PRODUCT_STATUS").                                                                                 |
-| `target_type` | VARCHAR(50)      | NOT NULL, INDEX                           | Type of entity acted upon (e.g., "Product", "Merchant", "Tag").                                                                                   |
-| `target_id`   | VARCHAR(255)     | NOT NULL, INDEX                           | ID of the entity acted upon (flexible for different ID types).                                                                                      |
-| `details`     | JSON             | NULLABLE                                  | JSON details of the action. For changes: `{"old_value": "...", "new_value": "..."}`. For AI: AI model version, request params.                  |
-| `ip_address`  | VARCHAR(45)      | NULLABLE                                  | IP address of the requester.                                                                                                                      |
-| `user_agent`  | TEXT             | NULLABLE                                  | User agent of the requester.                                                                                                                      |
-| `created_at`  | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP, INDEX| Timestamp of the log entry.                                                                                                                       |
+| `log_id`      | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique log entry identifier. -- 日志ID，主键，自增。                                                                                                    |
+| `user_id`     | BIGINT UNSIGNED  | NOT NULL, INDEX                           | ID of the user or system performing the action. -- 操作用户ID（实际用户ID或AI等系统保留ID）。                                                              |
+| `action_type` | VARCHAR(100)     | NOT NULL, INDEX                           | Type of action. -- 操作类型（如 "CREATE_PRODUCT", "AI_GENERATE_TAGS"）。                                                                               |
+| `target_type` | VARCHAR(50)      | NOT NULL, INDEX                           | The type of entity being acted upon. -- 操作目标实体类型（如 "Product", "Merchant"）。                                                                       |
+| `target_id`   | VARCHAR(255)     | NOT NULL, INDEX                           | The ID of the entity being acted upon. -- 操作目标实体ID。                                                                                              |
+| `details`     | JSON             | NULLABLE                                  | JSON object containing details of the action. -- 操作详情，JSON格式，可包含操作前后数据对比。                                                                      |
+| `ip_address`  | VARCHAR(45)      | NULLABLE                                  | IP address of the requester, if applicable. -- 请求者IP地址。                                                                                           |
+| `user_agent`  | TEXT             | NULLABLE                                  | User agent of the requester, if applicable. -- 请求者用户代理。                                                                                         |
+| `created_at`  | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP, INDEX| Timestamp of the log entry. -- 创建时间。                                                                                                           |
 
 **Indexes:**
 *   PRIMARY KEY (`log_id`)
@@ -235,28 +227,28 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-## Order Service Database
+## Order Service Database -- 订单服务数据库（独立微服务）
 
-### 1. Table: `orders`
+### 1. Table: `orders` -- 订单表
 
 | Column              | Type                | Constraints                                                              | Description / Notes                                                                                                  |
 |---------------------|---------------------|--------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| `order_id`          | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the order.                                                                                     |
-| `external_order_id` | VARCHAR(255)        | NULLABLE, UNIQUE                                                         | Order ID from the external platform (e.g., Xianyu order ID).                                                         |
-| `product_id`        | BIGINT UNSIGNED     | NOT NULL, INDEX                                                          | ID of the product being ordered (refers to `products.product_id` in Product Service).                                |
-| `buyer_id`          | VARCHAR(255)        | NOT NULL, INDEX                                                          | Identifier for the buyer (platform-specific user ID).                                                                |
-| `merchant_id`       | BIGINT UNSIGNED     | NOT NULL, INDEX                                                          | ID of the merchant selling the product (denormalized from Product Service).                                          |
-| `platform_id`       | VARCHAR(50)         | NOT NULL, INDEX                                                          | Identifier for the platform where the order originated.                                                              |
-| `status`            | ENUM(...)           | NOT NULL, INDEX                                                          | ('pending_lock', 'lock_failed', 'pending_payment', 'paid', 'payment_failed', 'shipped', 'delivered', 'cancelled', 'refunded'). |
-| `currency`          | VARCHAR(3)          | NOT NULL                                                                 | Currency of the order.                                                                                               |
-| `price_amount`      | DECIMAL(12, 2)      | NOT NULL                                                                 | Price at the time of order.                                                                                          |
-| `shipping_address`  | JSON                | NULLABLE                                                                 | Buyer's shipping address.                                                                                            |
-| `payment_details`   | JSON                | NULLABLE                                                                 | Details about the payment (e.g., transaction ID, payment method).                                                    |
-| `cancellation_reason`| TEXT                | NULLABLE                                                                 | Reason for cancellation, if applicable.                                                                              |
-| `created_at`        | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of order creation.                                                                                         |
-| `paid_at`           | TIMESTAMP           | NULLABLE                                                                 | Timestamp when payment was confirmed.                                                                                |
-| `updated_at`        | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update.                                                                                            |
-| `version`           | INT UNSIGNED        | NOT NULL, DEFAULT 1                                                      | Optimistic locking version.                                                                                          |
+| `order_id`          | BIGINT UNSIGNED     | PRIMARY KEY, AUTO_INCREMENT                                              | Unique identifier for the order. -- 订单ID，主键，自增。                                                                 |
+| `external_order_id` | VARCHAR(255)        | NULLABLE, UNIQUE                                                         | Order ID from the external platform. -- 外部平台订单ID，唯一。                                                               |
+| `product_id`        | BIGINT UNSIGNED     | NOT NULL, INDEX                                                          | The ID of the product being ordered. -- 商品ID，关联商品服务中的商品。                                                           |
+| `buyer_id`          | VARCHAR(255)        | NOT NULL, INDEX                                                          | Identifier for the buyer. -- 买家ID。                                                                                  |
+| `merchant_id`       | BIGINT UNSIGNED     | NOT NULL, INDEX                                                          | The ID of the merchant selling the product. -- 商家ID，冗余字段，方便查询。                                                      |
+| `platform_id`       | VARCHAR(50)         | NOT NULL, INDEX                                                          | Identifier for the platform where the order originated. -- 订单来源平台ID。                                                  |
+| `status`            | ENUM(...)           | NOT NULL, INDEX                                                          | ('pending_lock', 'lock_failed', 'pending_payment', 'paid', 'payment_failed', 'shipped', 'delivered', 'cancelled', 'refunded'). -- 订单状态（pending_lock: 待锁定, lock_failed: 锁定失败, pending_payment: 待支付, paid: 已支付, payment_failed: 支付失败, shipped: 已发货, delivered: 已送达, cancelled: 已取消, refunded: 已退款）。 |
+| `currency`          | VARCHAR(3)          | NOT NULL                                                                 | Currency of the order. -- 货币代码。                                                                                   |
+| `price_amount`      | DECIMAL(12, 2)      | NOT NULL                                                                 | Price at the time of order. -- 订单金额（下单时价格）。                                                                    |
+| `shipping_address`  | JSON                | NULLABLE                                                                 | Buyer's shipping address. -- 收货地址，JSON格式。                                                                      |
+| `payment_details`   | JSON                | NULLABLE                                                                 | Details about the payment. -- 支付详情，JSON格式。                                                                       |
+| `cancellation_reason`| TEXT                | NULLABLE                                                                 | Reason for cancellation, if applicable. -- 取消原因。                                                                  |
+| `created_at`        | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP                                      | Timestamp of order creation. -- 创建时间。                                                                             |
+| `paid_at`           | TIMESTAMP           | NULLABLE                                                                 | Timestamp when payment was confirmed. -- 支付时间。                                                                    |
+| `updated_at`        | TIMESTAMP           | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Timestamp of last update. -- 更新时间。                                                                                |
+| `version`           | INT UNSIGNED        | NOT NULL, DEFAULT 1                                                      | Optimistic locking version. -- 乐观锁版本号。                                                                            |
 
 **Indexes:**
 *   PRIMARY KEY (`order_id`)
@@ -270,17 +262,17 @@ This document outlines the database schema for the Product Service and Order Ser
 
 ---
 
-### 2. Table: `order_status_history`
+### 2. Table: `order_status_history` -- 订单状态历史表
 
 | Column       | Type             | Constraints                               | Description / Notes                                                                                 |
 |--------------|------------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------|
-| `history_id` | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier for the history entry.                                                            |
-| `order_id`   | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `orders.order_id`.                                                          |
-| `status_from`| VARCHAR(50)      | NULLABLE                                  | Previous status.                                                                                    |
-| `status_to`  | VARCHAR(50)      | NOT NULL                                  | New status.                                                                                         |
-| `changed_by` | VARCHAR(255)     | NULLABLE                                  | Who/what initiated change (e.g., "user_action", "system_event", "payment_gateway_callback").        |
-| `notes`      | TEXT             | NULLABLE                                  | Additional notes about the status change.                                                           |
-| `created_at` | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of the status change.                                                                     |
+| `history_id` | BIGINT UNSIGNED  | PRIMARY KEY, AUTO_INCREMENT               | Unique identifier for the history entry. -- 历史记录ID，主键，自增。                                          |
+| `order_id`   | BIGINT UNSIGNED  | NOT NULL                                  | Foreign key referencing `orders.order_id`. -- 订单ID，外键，关联orders表。                                  |
+| `status_from`| VARCHAR(50)      | NULLABLE                                  | Previous status. -- 原状态。                                                                          |
+| `status_to`  | VARCHAR(50)      | NOT NULL                                  | New status. -- 新状态。                                                                             |
+| `changed_by` | VARCHAR(255)     | NULLABLE                                  | Who/what initiated the change. -- 状态变更发起者。                                                        |
+| `notes`      | TEXT             | NULLABLE                                  | Additional notes about the status change. -- 备注信息。                                                 |
+| `created_at` | TIMESTAMP        | NOT NULL, DEFAULT CURRENT_TIMESTAMP       | Timestamp of the status change. -- 创建时间。                                                         |
 
 **Indexes:**
 *   PRIMARY KEY (`history_id`)
